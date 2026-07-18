@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Юлія Щебетун — AI-креаторка, фото та відео</title>
+<meta name="description" content="AI-креаторка: рекламні ролики та фотоконтент для брендів, авторські відеопроєкти.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,440;0,9..144,560;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0C0E;
+    --bg-panel:#14171B;
+    --bg-panel-2:#191D22;
+    --ink:#EDEAE3;
+    --ink-dim:#B9BDC2;
+    --ink-muted:#787D83;
+    --amber:#E39B4E;
+    --amber-dim:#B97C3B;
+    --teal:#4A9498;
+    --line: rgba(237,234,227,0.12);
+    --line-strong: rgba(237,234,227,0.22);
+    --bar-h: 44px;
+    --font-display:'Fraunces', ui-serif, Georgia, serif;
+    --font-body:'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-mono:'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  }
+
+  *,*::before,*::after{ box-sizing: border-box; }
+  html{ scroll-behavior:smooth; scroll-padding-top: calc(var(--bar-h) + 12px); }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    padding-top:var(--bar-h);
+    padding-bottom:var(--bar-h);
+    overflow-x:hidden;
+  }
+  img,svg{ display:block; max-width:100%; }
+  a{ color:inherit; text-decoration:none; }
+  h1,h2,h3{ font-family:var(--font-display); font-weight:560; margin:0; letter-spacing:-0.01em; }
+  p{ margin:0; }
+  ul{ margin:0; padding:0; list-style:none; }
+  button{ font-family:inherit; }
+
+  .container{ max-width:1200px; margin-inline:auto; padding-inline:clamp(1.25rem,5vw,3rem); }
+
+  .skip-link{
+    position:fixed; top:-100px; left:1rem; z-index:100;
+    background:var(--amber); color:#141414; padding:.6rem 1rem; border-radius:2px;
+    font-family:var(--font-mono); font-size:.8rem; transition:top .2s ease;
+  }
+  .skip-link:focus{ top:calc(var(--bar-h) + 10px); }
+
+  :focus-visible{ outline:2px solid var(--amber); outline-offset:3px; }
+
+  /* ---------- letterbox bars ---------- */
+  .bar{
+    position:fixed; left:0; right:0; height:var(--bar-h);
+    background:#000; z-index:40;
+  }
+  .bar--top{ top:0; border-bottom:1px solid var(--line); }
+  .bar--bottom{ bottom:0; border-top:1px solid var(--line); }
+  .bar__inner{
+    height:100%; display:flex; align-items:center; justify-content:space-between;
+    padding-inline:clamp(1rem,4vw,2rem);
+    font-family:var(--font-mono); font-size:.72rem; letter-spacing:.08em;
+  }
+  .wordmark{
+    font-family:var(--font-display); font-weight:560; font-size:1rem;
+    letter-spacing:0; color:var(--ink); white-space:nowrap;
+  }
+  .nav{ display:flex; gap:clamp(1rem,2.4vw,2rem); }
+  .nav a{ color:var(--ink-muted); text-transform:uppercase; transition:color .2s ease; position:relative; }
+  .nav a:hover, .nav a.is-active{ color:var(--amber); }
+  .nav a.is-active::after{
+    content:''; position:absolute; left:0; right:0; bottom:-14px; height:2px; background:var(--amber);
+  }
+  .timecode{ color:var(--amber); font-variant-numeric:tabular-nums; }
+  .bar--bottom .bar__inner{ color:var(--ink-muted); }
+  .aspect{ color:var(--ink-muted); }
+  .scrub{ flex:1; max-width:420px; height:2px; background:var(--line); margin-inline:1.5rem; position:relative; }
+  .scrub__fill{ position:absolute; inset:0; width:0%; background:var(--amber); transition:width .08s linear; }
+  .act{ color:var(--teal); min-width:6ch; text-align:right; }
+
+  @media (max-width:760px){
+    .nav{ display:none; }
+    .scrub{ margin-inline:1rem; }
+  }
+  @media (max-width:520px){
+    :root{ --bar-h:36px; }
+    .bar__inner{ font-size:.6rem; }
+    .wordmark{ font-size:.82rem; }
+    .aspect{ display:none; }
+  }
+
+  /* ---------- ambient layers ---------- */
+  .vignette{
+    position:fixed; inset:0; z-index:15; pointer-events:none;
+    background:radial-gradient(ellipse at 50% 40%, transparent 35%, rgba(0,0,0,.6) 100%);
+  }
+  .grain{
+    position:fixed; inset:0; z-index:16; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* ---------- utility ---------- */
+  .eyebrow{
+    font-family:var(--font-mono); font-size:.72rem; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--teal); display:flex; align-items:center; gap:.6em; margin-bottom:1.1rem;
+  }
+  .eyebrow::before{ content:''; width:1.4em; height:1px; background:var(--teal); display:inline-block; }
+
+  .subhead{
+    font-family:var(--font-mono); font-size:.78rem; letter-spacing:.15em; text-transform:uppercase;
+    color:var(--amber); margin:3rem 0 1.25rem;
+  }
+  .subhead:first-of-type{ margin-top:0; }
+
+  .btn{
+    display:inline-flex; align-items:center; gap:.5em; padding:.85rem 1.5rem;
+    font-family:var(--font-mono); font-size:.78rem; letter-spacing:.06em; text-transform:uppercase;
+    border-radius:2px; border:1px solid var(--line-strong); transition:all .2s ease; cursor:pointer;
+  }
+  .btn--primary{ background:var(--amber); border-color:var(--amber); color:#141210; }
+  .btn--primary:hover{ background:#f0ac63; }
+  .btn--ghost{ background:transparent; color:var(--ink); }
+  .btn--ghost:hover{ border-color:var(--amber); color:var(--amber); }
+
+  .reveal{ opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease; }
+  .reveal.is-visible{ opacity:1; transform:translateY(0); }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
+    .marquee__track{ animation:none !important; }
+    .hero-in{ animation:none !important; opacity:1 !important; transform:none !important; }
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    min-height:calc(100vh - var(--bar-h)*2);
+    display:flex; flex-direction:column; justify-content:center;
+    position:relative; padding-block:4rem 2rem;
+  }
+  .hero__frame{ position:relative; }
+  .corner{ position:absolute; width:22px; height:22px; border-color:var(--amber-dim); opacity:.55; }
+  .corner--tl{ top:-14px; left:-4px; border-top:1px solid; border-left:1px solid; }
+  .corner--br{ bottom:-14px; right:-4px; border-bottom:1px solid; border-right:1px solid; }
+
+  .hero-in{ animation:fadeUp .8s ease both; }
+  .hero-in:nth-child(1){ animation-delay:.05s; }
+  .hero-in:nth-child(2){ animation-delay:.18s; }
+  .hero-in:nth-child(3){ animation-delay:.32s; }
+  .hero-in:nth-child(4){ animation-delay:.46s; }
+  @keyframes fadeUp{ from{ opacity:0; transform:translateY(18px);} to{ opacity:1; transform:translateY(0);} }
+
+  .hero h1{ font-size:clamp(2.8rem,9vw,6.4rem); line-height:.98; }
+  .hero__sub{
+    font-family:var(--font-display); font-style:italic; font-weight:400;
+    font-size:clamp(1.1rem,2.4vw,1.5rem); color:var(--ink-dim); margin-top:1rem;
+  }
+  .hero__lede{
+    max-width:50ch; color:var(--ink-dim); margin-top:1.4rem; font-size:1rem; line-height:1.65;
+  }
+  .hero__ctas{ display:flex; gap:1rem; flex-wrap:wrap; margin-top:2.2rem; }
+
+  .marquee{
+    margin-top:3.5rem; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    padding-block:.9rem; overflow:hidden;
+  }
+  .marquee__track{
+    display:flex; gap:2.5rem; white-space:nowrap; width:max-content;
+    font-family:var(--font-mono); font-size:.78rem; letter-spacing:.1em; color:var(--ink-muted);
+    animation:scroll 26s linear infinite;
+  }
+  .marquee:hover .marquee__track{ animation-play-state:paused; }
+  @keyframes scroll{ from{ transform:translateX(0);} to{ transform:translateX(-50%);} }
+
+  /* ---------- sections shared ---------- */
+  .section{ padding-block:clamp(4.5rem,9vw,7.5rem); border-top:1px solid var(--line); }
+  .section__head{ display:flex; justify-content:space-between; align-items:flex-end; gap:2rem; flex-wrap:wrap; margin-bottom:2.5rem; }
+  .section__head h2{ font-size:clamp(2rem,4.6vw,3.1rem); max-width:20ch; }
+  .section__head p{ color:var(--ink-muted); max-width:34ch; font-size:.94rem; line-height:1.6; }
+
+  /* ---------- work grid ---------- */
+  .work-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:clamp(1.5rem,3vw,2.5rem); }
+  @media (max-width:820px){ .work-grid{ grid-template-columns:1fr; } }
+
+  .card{ border:1px solid var(--line); border-radius:2px; overflow:hidden; background:var(--bg-panel); transition:border-color .25s ease; }
+  .card:hover{ border-color:var(--line-strong); }
+  .card__frame{
+    position:relative; width:100%; overflow:hidden; background:var(--bg-panel-2);
+  }
+  .card__frame::before{
+    content:''; position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 1px, transparent 1px 4px);
+  }
+  .card__frame iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; z-index:1; }
+  .card__frame img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+  .card__meta-tag{
+    position:absolute; left:.8rem; top:.8rem; z-index:3;
+    font-family:var(--font-mono); font-size:.66rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink); background:rgba(0,0,0,.55); padding:.25rem .55rem; border-radius:2px;
+    display:flex; align-items:center; gap:.4em; pointer-events:none;
+  }
+  .card__overlay{
+    position:absolute; inset:auto 0 0 0; z-index:3; padding:.9rem 1rem;
+    background:linear-gradient(to top, rgba(0,0,0,.75), transparent);
+    transform:translateY(8px); opacity:0; transition:all .25s ease; pointer-events:none;
+    font-family:var(--font-mono); font-size:.68rem; color:var(--ink-dim); letter-spacing:.04em;
+  }
+  .card:hover .card__overlay{ opacity:1; transform:translateY(0); }
+  .card__body{ padding:1.3rem 1.4rem 1.5rem; }
+  .card__body h3{ font-size:1.3rem; font-weight:500; margin-bottom:.5rem; }
+  .card__body p{ color:var(--ink-muted); font-size:.9rem; line-height:1.55; }
+  .card__link{
+    display:inline-block; margin-top:.7rem; font-family:var(--font-mono); font-size:.7rem;
+    color:var(--teal); letter-spacing:.04em; border-bottom:1px solid transparent;
+  }
+  .card__link:hover{ color:var(--amber); border-color:var(--amber); }
+
+  .card__play{
+    position:absolute; inset:0; z-index:2; display:flex; align-items:center; justify-content:center;
+    pointer-events:none;
+  }
+  .card__play span{
+    width:52px; height:52px; border-radius:50%; background:rgba(0,0,0,.55);
+    border:1px solid rgba(237,234,227,.35); color:var(--ink);
+    display:flex; align-items:center; justify-content:center; font-size:.95rem; padding-left:3px;
+  }
+
+  .card__watch{
+    display:inline-flex; align-items:center; gap:.5em; margin-top:.9rem;
+    padding:.6rem 1.1rem; font-family:var(--font-mono); font-size:.7rem; letter-spacing:.05em; text-transform:uppercase;
+    border:1px solid var(--line-strong); border-radius:2px; color:var(--ink); transition:all .2s ease;
+  }
+  .card__watch:hover{ border-color:var(--amber); color:var(--amber); }
+
+  .karma-item__btn{
+    display:block; text-align:center; margin-top:.6rem; padding:.5rem .8rem;
+    font-family:var(--font-mono); font-size:.66rem; letter-spacing:.05em; text-transform:uppercase;
+    border:1px solid var(--line-strong); border-radius:2px; color:var(--ink-muted); transition:all .2s ease;
+  }
+  .karma-item__btn:hover{ border-color:var(--amber); color:var(--amber); }
+
+  /* feature card (photo series) */
+  .card--feature{ display:flex; grid-column:span 2; }
+  .card--feature .card__frame{ flex:0 0 320px; aspect-ratio:4/5; }
+  .card--feature .card__body{ flex:1; display:flex; flex-direction:column; justify-content:center; }
+  @media (max-width:820px){
+    .card--feature{ grid-column:auto; flex-direction:column; }
+    .card--feature .card__frame{ flex:none; width:100%; }
+  }
+  .mini-thumbs{ display:flex; gap:.5rem; margin-top:1.1rem; flex-wrap:wrap; }
+  .mini-thumbs a{ display:block; width:52px; height:52px; border-radius:2px; overflow:hidden; border:1px solid var(--line); flex:0 0 auto; }
+  .mini-thumbs a:hover{ border-color:var(--amber); }
+  .mini-thumbs img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+  /* horizontally scrollable multi-clip block (Karma) */
+  .karma-block{ margin-bottom:clamp(2.5rem,5vw,3.5rem); }
+  .karma-block__head{ margin-bottom:1.2rem; }
+  .karma-block__head h3{ font-size:1.4rem; font-weight:500; }
+  .karma-block__head p{ color:var(--ink-muted); font-size:.9rem; margin-top:.35rem; }
+  .karma-strip{
+    display:flex; gap:1rem; overflow-x:auto; padding-bottom:.9rem; cursor:grab; scrollbar-width:thin;
+    margin-inline:calc(-1 * clamp(1.25rem,5vw,3rem)); padding-inline:clamp(1.25rem,5vw,3rem);
+  }
+  .karma-strip:active{ cursor:grabbing; }
+  .karma-strip::-webkit-scrollbar{ height:5px; }
+  .karma-strip::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:4px; }
+  .karma-item{ flex:0 0 auto; width:min(320px,78vw); }
+  .karma-item .card__frame{ border:1px solid var(--line); border-radius:2px; aspect-ratio:16/9; }
+
+  /* ---------- about / statement ---------- */
+  .statement{ max-width:820px; }
+  .statement__pull{
+    font-family:var(--font-display); font-style:italic; font-weight:400;
+    font-size:clamp(1.5rem,3.4vw,2.3rem); color:var(--ink); line-height:1.35; margin-bottom:1.8rem;
+  }
+  .statement p{ color:var(--ink-dim); font-size:1rem; line-height:1.75; max-width:66ch; }
+  .statement p + p{ margin-top:1.1rem; }
+
+  /* ---------- credits ---------- */
+  .credits{ border-top:1px solid var(--line); }
+  .credits__row{
+    display:grid; grid-template-columns:1fr 2fr; gap:1.5rem;
+    padding-block:1.4rem; border-bottom:1px solid var(--line);
+  }
+  .credits__role{ font-family:var(--font-mono); font-size:.78rem; letter-spacing:.08em; color:var(--amber); text-transform:uppercase; }
+  .credits__desc{ color:var(--ink-dim); font-size:.95rem; line-height:1.6; max-width:52ch; }
+  @media (max-width:640px){ .credits__row{ grid-template-columns:1fr; gap:.5rem; } }
+
+  /* ---------- diploma ---------- */
+  .diploma{
+    display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap;
+    margin-top:3rem; padding-top:2.5rem; border-top:1px solid var(--line);
+  }
+  .diploma img{
+    width:120px; border-radius:2px; border:1px solid var(--line-strong); flex:0 0 auto;
+    transition:border-color .2s ease;
+  }
+  .diploma:hover img{ border-color:var(--amber); }
+  .diploma__title{ font-family:var(--font-display); font-size:1.15rem; color:var(--ink); margin-bottom:.4rem; }
+  .diploma__desc{ color:var(--ink-muted); font-size:.88rem; line-height:1.55; max-width:48ch; }
+  .diploma__link{
+    display:inline-block; margin-top:.6rem; font-family:var(--font-mono); font-size:.72rem;
+    letter-spacing:.04em; color:var(--teal); border-bottom:1px solid transparent;
+  }
+  .diploma:hover .diploma__link{ color:var(--amber); border-color:var(--amber); }
+
+  /* ---------- contact ---------- */
+  .contact__inner{ display:flex; justify-content:space-between; align-items:flex-end; gap:2.5rem; flex-wrap:wrap; }
+  .contact h2{ font-size:clamp(2.2rem,6vw,4rem); max-width:16ch; }
+  .contact__links{ display:flex; flex-direction:column; gap:.6rem; font-family:var(--font-mono); font-size:.85rem; }
+  .contact__links a{ color:var(--ink-dim); border-bottom:1px solid transparent; transition:.2s; }
+  .contact__links a:hover{ color:var(--amber); border-color:var(--amber); }
+
+  /* ---------- footer ---------- */
+  .foot{ border-top:1px solid var(--line); padding-block:2rem; }
+  .foot__inner{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; }
+  .foot p{ color:var(--ink-muted); font-family:var(--font-mono); font-size:.72rem; letter-spacing:.05em; }
+  .foot a{ color:var(--ink-muted); }
+  .foot a:hover{ color:var(--amber); }
+</style>
+</head>
+<body>
+
+<a href="#hero" class="skip-link">До змісту</a>
+<div class="vignette" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="bar bar--top">
+  <div class="bar__inner">
+    <a href="#hero" class="wordmark">Юлія Щебетун</a>
+    <nav class="nav" aria-label="Розділи">
+      <a href="#work" data-nav="РОБОТИ">Роботи</a>
+      <a href="#about" data-nav="ПОГЛЯД">Про мене</a>
+      <a href="#capabilities" data-nav="ТИТРИ">Можливості</a>
+      <a href="#contact" data-nav="ПОКАЗ">Контакт</a>
+    </nav>
+    <div class="timecode" id="timecode">00:00:00</div>
+  </div>
+</header>
+
+<div class="bar bar--bottom" aria-hidden="true">
+  <div class="bar__inner">
+    <span class="aspect">2.39∶1</span>
+    <div class="scrub"><div class="scrub__fill" id="scrubFill"></div></div>
+    <span class="act" id="actLabel">ВСТУП</span>
+  </div>
+</div>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="container hero__frame">
+      <span class="corner corner--tl" aria-hidden="true"></span>
+      <span class="corner corner--br" aria-hidden="true"></span>
+
+      <div class="eyebrow hero-in">AI-креаторка</div>
+      <h1 class="hero-in">Юлія Щебетун</h1>
+      <p class="hero__sub hero-in">Фото та відео для брендів — без камери і студії.</p>
+      <p class="hero__lede hero-in">Створюю рекламні ролики та фотоконтент за допомогою AI — на
+        сучасних фото- та відео-моделях, без камери і студії.</p>
+
+      <div class="hero__ctas hero-in">
+        <a href="#work" class="btn btn--primary">Дивитись роботи ▸</a>
+        <a href="#contact" class="btn btn--ghost">Почати проєкт</a>
+      </div>
+    </div>
+
+    <div class="marquee">
+      <div class="marquee__track" id="marquee">
+        <span>CASTORAMA</span><span>·</span><span>CONFORAMA</span><span>·</span><span>ROWENTA</span><span>·</span>
+        <span>TEFAL</span><span>·</span><span>MONROVIA</span><span>·</span><span>«БЕЗМЕЖ»</span><span>·</span><span>SETCORSET</span><span>·</span>
+        <span>CASTORAMA</span><span>·</span><span>CONFORAMA</span><span>·</span><span>ROWENTA</span><span>·</span>
+        <span>TEFAL</span><span>·</span><span>MONROVIA</span><span>·</span><span>«БЕЗМЕЖ»</span><span>·</span><span>SETCORSET</span><span>·</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- АКТ I — РОБОТИ -->
+  <section class="section" id="work" data-act="РОБОТИ">
+    <div class="container">
+      <div class="eyebrow reveal">Акт I · Роботи</div>
+      <div class="section__head reveal">
+        <h2>Бренди та особисті проєкти.</h2>
+        <p>Реальні кадри з Google Drive — відео відкриваються прямо тут.</p>
+      </div>
+
+      <h3 class="subhead reveal">Бренди</h3>
+      <div class="work-grid">
+        <article class="card reveal">
+          <div class="card__frame" style="aspect-ratio:16/9;">
+            <img src="https://drive.google.com/thumbnail?id=1yo_jr4B1YTlkPsI8mEvYRqfjP2ZfUlfW&sz=w1000" loading="lazy" alt="Castorama">
+            <div class="card__play" aria-hidden="true"><span>▶</span></div>
+            <span class="card__meta-tag">▶ Відео</span>
+          </div>
+          <div class="card__body">
+            <h3>Castorama</h3>
+            <p>Рекламний ролик для мережі товарів для дому і саду.</p>
+            <a class="card__watch" href="https://drive.google.com/file/d/1yo_jr4B1YTlkPsI8mEvYRqfjP2ZfUlfW/view" target="_blank" rel="noopener">Дивитись у Drive ▸</a>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card__frame" style="aspect-ratio:16/9;">
+            <img src="https://drive.google.com/thumbnail?id=1bcCsNbdfD07Yp9gjmOIwJJOcdiNXl-3D&sz=w1000" loading="lazy" alt="Conforama">
+            <div class="card__play" aria-hidden="true"><span>▶</span></div>
+            <span class="card__meta-tag">▶ Відео</span>
+          </div>
+          <div class="card__body">
+            <h3>Conforama</h3>
+            <p>Рекламний ролик дивана для мережі меблевих магазинів.</p>
+            <a class="card__watch" href="https://drive.google.com/file/d/1bcCsNbdfD07Yp9gjmOIwJJOcdiNXl-3D/view" target="_blank" rel="noopener">Дивитись у Drive ▸</a>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card__frame" style="aspect-ratio:16/9;">
+            <img src="https://drive.google.com/thumbnail?id=1WOMAhG6cTpgVFEaXst1oHkvgigKbrzo2&sz=w1000" loading="lazy" alt="Rowenta">
+            <div class="card__play" aria-hidden="true"><span>▶</span></div>
+            <span class="card__meta-tag">▶ Відео</span>
+          </div>
+          <div class="card__body">
+            <h3>Rowenta</h3>
+            <p>Рекламний ролик пилососа з фінальним звуковим оформленням.</p>
+            <a class="card__watch" href="https://drive.google.com/file/d/1WOMAhG6cTpgVFEaXst1oHkvgigKbrzo2/view" target="_blank" rel="noopener">Дивитись у Drive ▸</a>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card__frame" style="aspect-ratio:16/9;">
+            <img src="https://drive.google.com/thumbnail?id=1YXBwHjwd6CGYxOuUeeJFroSvbzvXZvc4&sz=w1000" loading="lazy" alt="Tefal">
+            <div class="card__play" aria-hidden="true"><span>▶</span></div>
+            <span class="card__meta-tag">▶ Відео</span>
+          </div>
+          <div class="card__body">
+            <h3>Tefal</h3>
+            <p>Рекламний ролик кухонної техніки Tefal.</p>
+            <a class="card__watch" href="https://drive.google.com/file/d/1YXBwHjwd6CGYxOuUeeJFroSvbzvXZvc4/view" target="_blank" rel="noopener">Дивитись у Drive ▸</a>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card__frame" style="aspect-ratio:16/9;">
+            <img src="https://drive.google.com/thumbnail?id=1WIFiwc0dy7BnVv7RvFOjfLwYF26z1b0C&sz=w1000" loading="lazy" alt="Monrovia">
+            <div class="card__play" aria-hidden="true"><span>▶</span></div>
+            <span class="card__meta-tag">▶ Відео</span>
+          </div>
+          <div class="card__body">
+            <h3>Monrovia</h3>
+            <p>Рекламний ролик для міжнародного садового центру.</p>
+            <a class="card__watch" href="https://drive.google.com/file/d/1WIFiwc0dy7BnVv7RvFOjfLwYF26z1b0C/view" target="_blank" rel="noopener">Дивитись у Drive ▸</a>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card__frame" style="aspect-ratio:16/9;">
+            <img src="https://drive.google.com/thumbnail?id=1TGXOaHTbK0Z6BiBHRJGwGFxHWzAoxSRN&sz=w1000" loading="lazy" alt="Безмеж">
+            <div class="card__play" aria-hidden="true"><span>▶</span></div>
+            <span class="card__meta-tag">▶ Відео</span>
+          </div>
+          <div class="card__body">
+            <h3>«Безмеж»</h3>
+            <p>Фінальний рекламний ролик для компанії міжнародних вантажних перевезень.</p>
+            <a class="card__watch" href="https://drive.google.com/file/d/1TGXOaHTbK0Z6BiBHRJGwGFxHWzAoxSRN/view" target="_blank" rel="noopener">Дивитись у Drive ▸</a>
+          </div>
+        </article>
+
+        <article class="card card--feature reveal">
+          <div class="card__frame">
+            <img src="corset-01.jpg" loading="lazy" alt="">
+            <span class="card__meta-tag">◇ Фото</span>
+          </div>
+          <div class="card__body">
+            <h3>Setcorset</h3>
+            <p>AI-фотогенерація товару для бренду корсетів і білизни — без фотостудії.</p>
+            <div class="mini-thumbs">
+              <a href="https://drive.google.com/file/d/12PNJERM-wJa0KTfL84t9nCFSBd_0g_1v/view" target="_blank" rel="noopener"><img src="corset-02-thumb.jpg" loading="lazy" alt=""></a>
+              <a href="https://drive.google.com/file/d/1am_NfeTkcBfdqUuyEJelrveA0g2uPYc1/view" target="_blank" rel="noopener"><img src="corset-03-thumb.jpg" loading="lazy" alt=""></a>
+              <a href="https://drive.google.com/file/d/1wcv58au1E5s7ycRaSGCtyFlgQrG5kmSS/view" target="_blank" rel="noopener"><img src="corset-04-thumb.jpg" loading="lazy" alt=""></a>
+              <a href="https://drive.google.com/file/d/13MnS2ALZhikPbQ_zgUMtia8UEBTyUAFy/view" target="_blank" rel="noopener"><img src="corset-05-thumb.jpg" loading="lazy" alt=""></a>
+              <a href="https://drive.google.com/file/d/1axmI9Jub8LUCI6c3-E9RukO4FXQH1S1f/view" target="_blank" rel="noopener"><img src="corset-06-thumb.jpg" loading="lazy" alt=""></a>
+            </div>
+            <a class="card__watch" href="https://drive.google.com/drive/folders/1LpWM244PSZ2AEHGnEa5I-EW9ffXlUYYq" target="_blank" rel="noopener">Дивитись серію в Drive ▸</a>
+          </div>
+        </article>
+      </div>
+
+      <h3 class="subhead reveal">Особисті проєкти</h3>
+
+      <div class="karma-block reveal">
+        <div class="karma-block__head">
+          <h3>Karma</h3>
+          <p>Авторська відеосерія — 5 частин, гортай праворуч →</p>
+        </div>
+        <div class="karma-strip" id="karmaStrip">
+          <div class="karma-item">
+            <div class="card__frame">
+              <img src="https://drive.google.com/thumbnail?id=1CETRGHx0vWW-7LaDTOSGY0rPZvVKJ7M8&sz=w1000" loading="lazy" alt="Karma 01">
+            <div class="card__play" aria-hidden="true"><span>▶</span></div>
+              <span class="card__meta-tag">01 / 05</span>
+            </div>
+            <a class="karma-item__btn" href="https://drive.google.com/file/d/1CETRGHx0vWW-7LaDTOSGY0rPZvVKJ7M8/view" target="_blank" rel="noopener">Drive ▸</a>
+          </div>
+          <div class="karma-item">
+            <div class="card__frame">
+              <img src="https://drive.google.com/thumbnail?id=1ybx3XLtJOncwf7ZXajJT5ui0DrjcKXXj&sz=w1000" loading="lazy" alt="Karma 02">
+            <div class="card__play" aria-hidden="true"><span>▶</span></div>
+              <span class="card__meta-tag">02 / 05</span>
+            </div>
+            <a class="karma-item__btn" href="https://drive.google.com/file/d/1ybx3XLtJOncwf7ZXajJT5ui0DrjcKXXj/view" target="_blank" rel="noopener">Drive ▸</a>
+          </div>
+          <div class="karma-item">
+            <div class="card__frame">
+              <img src="https://drive.google.com/thumbnail?id=1RiwjXaFFpC1PZrimGMniVNxQYFt_xTHF&sz=w1000" loading="lazy" alt="Karma 03">
+            <div class="card__play" aria-hidden="true"><span>▶</span></div>
+              <span class="card__meta-tag">03 / 05</span>
+            </div>
+            <a class="karma-item__btn" href="https://drive.google.com/file/d/1RiwjXaFFpC1PZrimGMniVNxQYFt_xTHF/view" target="_blank" rel="noopener">Drive ▸</a>
+          </div>
+          <div class="karma-item">
+            <div class="card__frame">
+              <img src="https://drive.google.com/thumbnail?id=1JvFMNn9kG4FXSKWS-Nc0fmJbVO82s7q2&sz=w1000" loading="lazy" alt="Karma 04">
+            <div class="card__play" aria-hidden="true"><span>▶</span></div>
+              <span class="card__meta-tag">04 / 05</span>
+            </div>
+            <a class="karma-item__btn" href="https://drive.google.com/file/d/1JvFMNn9kG4FXSKWS-Nc0fmJbVO82s7q2/view" target="_blank" rel="noopener">Drive ▸</a>
+          </div>
+          <div class="karma-item">
+            <div class="card__frame">
+              <img src="https://drive.google.com/thumbnail?id=1vPdnjB5CZlDtfDvxlNXhCjtZws9T8Lza&sz=w1000" loading="lazy" alt="Karma 05">
+            <div class="card__play" aria-hidden="true"><span>▶</span></div>
+              <span class="card__meta-tag">05 / 05</span>
+            </div>
+            <a class="karma-item__btn" href="https://drive.google.com/file/d/1vPdnjB5CZlDtfDvxlNXhCjtZws9T8Lza/view" target="_blank" rel="noopener">Drive ▸</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="work-grid">
+        <article class="card reveal">
+          <div class="card__frame" style="aspect-ratio:16/9;">
+            <img src="https://drive.google.com/thumbnail?id=1emm37lxoUuAhXugfENd6MWMoFqcoJHff&sz=w1000" loading="lazy" alt="Відеоряд під музику">
+            <div class="card__play" aria-hidden="true"><span>▶</span></div>
+            <span class="card__meta-tag">▶ Відео</span>
+          </div>
+          <div class="card__body">
+            <h3>Відеоряд під музику</h3>
+            <p>Візуальна історія, змонтована під музичний трек.</p>
+            <a class="card__watch" href="https://drive.google.com/file/d/1emm37lxoUuAhXugfENd6MWMoFqcoJHff/view" target="_blank" rel="noopener">Дивитись у Drive ▸</a>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card__frame" style="aspect-ratio:16/9;">
+            <img src="https://drive.google.com/thumbnail?id=19wMP6rhRxwb9PZx9MKwMe8vJvPpxBlng&sz=w1000" loading="lazy" alt="Старший брат">
+            <div class="card__play" aria-hidden="true"><span>▶</span></div>
+            <span class="card__meta-tag">▶ Відео</span>
+          </div>
+          <div class="card__body">
+            <h3>«Старший брат»</h3>
+            <p>Анімаційний короткий метр для дитини.</p>
+            <a class="card__watch" href="https://drive.google.com/file/d/19wMP6rhRxwb9PZx9MKwMe8vJvPpxBlng/view" target="_blank" rel="noopener">Дивитись у Drive ▸</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- АКТ II — ПОГЛЯД -->
+  <section class="section" id="about" data-act="ПОГЛЯД">
+    <div class="container statement">
+      <div class="eyebrow reveal">Акт II · Погляд</div>
+      <p class="statement__pull reveal">Будь-який бриф — один рівень якості.</p>
+      <div class="reveal">
+        <p>AI-генерацією фото і відео я займаюся півтора року — прийшла в цей напрям одразу, без
+          бекграунду в традиційній фото- чи відеозйомці. Це дало інший погляд на процес: я будую
+          продакшн навколо промпту з нуля, а не підлаштовую камеру під AI.</p>
+        <p>Працюю з брендами й агенціями — від рекламних роликів до товарної фотографії — і не
+          тримаюся однієї ніші: беру в роботу будь-який бриф і під кожен підбираю сучасні фото- та
+          відео-моделі. Поруч із комерційними проєктами роблю авторські роботи: короткий метр,
+          музичні відеоряди, анімацію.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- АКТ III — ТИТРИ -->
+  <section class="section credits" id="capabilities" data-act="ТИТРИ">
+    <div class="container">
+      <div class="eyebrow reveal">Акт III · Титри</div>
+      <div class="section__head reveal">
+        <h2>Що я приношу на зйомку, якої не існує.</h2>
+      </div>
+
+      <div class="credits__list">
+        <div class="credits__row reveal">
+          <div class="credits__role">Режисура і концепція</div>
+          <div class="credits__desc">Мудборди, трітменти й сценарії для рекламних роликів та кампаній.</div>
+        </div>
+        <div class="credits__row reveal">
+          <div class="credits__role">Фото</div>
+          <div class="credits__desc">Продуктова, портретна та рекламна фотографія без зйомкового майданчика — на сучасних фото-моделях.</div>
+        </div>
+        <div class="credits__row reveal">
+          <div class="credits__role">Відео</div>
+          <div class="credits__desc">Рекламні ролики та анімація на сучасних відео-моделях, під платформу й хронометраж клієнта.</div>
+        </div>
+        <div class="credits__row reveal">
+          <div class="credits__role">Фінішинг</div>
+          <div class="credits__desc">Колірна корекція, апскейл, звуковий дизайн і фінальний монтаж.</div>
+        </div>
+        <div class="credits__row reveal">
+          <div class="credits__role">Кампанії під ключ</div>
+          <div class="credits__desc">Повний цикл — від брифу до готового ролика у форматах під кожну платформу.</div>
+        </div>
+        <div class="credits__row reveal">
+          <div class="credits__role">Партнерства</div>
+          <div class="credits__desc">Creative Partner — OpenArt.</div>
+        </div>
+      </div>
+
+      <a class="diploma reveal" href="diploma.jpg" target="_blank" rel="noopener">
+        <img src="diploma.jpg" loading="lazy" alt="Диплом Proshivka 1.0 з відзнакою — Юлія Щебетун">
+        <div class="diploma__text">
+          <p class="diploma__title">Proshivka 1.0 — Diploma with Honors</p>
+          <p class="diploma__desc">Курс Володимира Чернера: продакшн і захист фінального відео,
+            розбір з куратором. Видано 31.05.2026.</p>
+          <span class="diploma__link">Переглянути сертифікат ↗</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- АКТ IV — ПОКАЗ -->
+  <section class="section contact" id="contact" data-act="ПОКАЗ">
+    <div class="container contact__inner">
+      <h2 class="reveal">Є бриф?<br>Знімемо його.</h2>
+      <div class="contact__links reveal">
+        <a href="mailto:yuskritckaya23@gmail.com">yuskritckaya23@gmail.com</a>
+        <a href="https://www.instagram.com/shebetoon.lab?igsh=MXVrN2JuNnk0MGtqaQ%3D%3D&amp;utm_source=qr" target="_blank" rel="noopener">Instagram ↗</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="container foot__inner">
+    <p>Юлія Щебетун © 2026 — кадр за кадром.</p>
+    <p><a href="#hero">Нагору ↑</a></p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var revealEls = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window && !reduced){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          e.target.classList.add('is-visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('is-visible'); });
+  }
+
+  var sections = document.querySelectorAll('[data-act]');
+  var actLabel = document.getElementById('actLabel');
+  var navLinks = document.querySelectorAll('.nav a');
+  if('IntersectionObserver' in window){
+    var actIo = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          var act = e.target.getAttribute('data-act');
+          if(actLabel) actLabel.textContent = act;
+          navLinks.forEach(function(a){
+            a.classList.toggle('is-active', a.dataset.nav === act);
+          });
+        }
+      });
+    }, { threshold: 0.5 });
+    sections.forEach(function(s){ actIo.observe(s); });
+  }
+
+  var timecodeEl = document.getElementById('timecode');
+  var scrubFill = document.getElementById('scrubFill');
+  var fps = 24, totalSeconds = 272;
+  var ticking = false;
+
+  function formatTC(frames){
+    var totalSec = Math.floor(frames / fps);
+    var ff = Math.floor(frames % fps);
+    var mm = Math.floor(totalSec / 60);
+    var ss = totalSec % 60;
+    function pad(n){ return String(n).padStart(2,'0'); }
+    return pad(mm) + ':' + pad(ss) + ':' + pad(ff);
+  }
+
+  function updateOnScroll(){
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    var progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+    if(timecodeEl) timecodeEl.textContent = formatTC(progress * totalSeconds * fps);
+    if(scrubFill) scrubFill.style.width = (progress * 100) + '%';
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', function(){
+    if(!ticking){ window.requestAnimationFrame(updateOnScroll); ticking = true; }
+  }, { passive: true });
+  window.addEventListener('resize', updateOnScroll);
+  updateOnScroll();
+
+  function makeDraggable(el){
+    if(!el) return;
+    var isDown = false, startX, scrollLeft;
+    el.addEventListener('pointerdown', function(e){
+      isDown = true; startX = e.pageX; scrollLeft = el.scrollLeft;
+    });
+    window.addEventListener('pointerup', function(){ isDown = false; });
+    el.addEventListener('pointermove', function(e){
+      if(!isDown) return;
+      el.scrollLeft = scrollLeft - (e.pageX - startX);
+    });
+  }
+  makeDraggable(document.getElementById('karmaStrip'));
+})();
+</script>
+</body>
+</html>
